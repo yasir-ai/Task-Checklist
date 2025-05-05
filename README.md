@@ -77,4 +77,4 @@ This is an unofficial fan-made tool. Warframe and all related assets are the int
 
 ## License
 
-This project is licensed under the **GNU General Public License v3.0 (GPLv3)**. See the [LICENSE(https://github.com/warframe-tools/Task-Checklist?tab=GPL-3.0-1-ov-file)] file for details.
+This project is licensed under the **GNU General Public License v3.0 (GPLv3)**. See the [LICENSE](https://github.com/warframe-tools/Task-Checklist?tab=GPL-3.0-1-ov-file) file for details.
