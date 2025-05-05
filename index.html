@@ -271,7 +271,6 @@
         }
         #error-message {
             flex-grow: 1;
-            /* margin-right: 1rem; /* Replaced by gap */
         }
         #error-copy-button {
             background-color: var(--error-button-bg);
@@ -388,19 +387,24 @@
              <a href="https://framehub.paroxity.net/" target="_blank" rel="noopener noreferrer">FrameHub</a>
          </div>
 
-         <p class="text-xs text-center mt-4 version-text">Version ${APP_VERSION}</p>
+         <p class="text-xs text-center mt-4 version-text">App Version X</p>
+         <p class="text-xs text-center mt-1 warframe-version-text">Warframe Version X</p>
          <p class="text-xs text-center mt-2 px-4 disclaimer-text">
              This is an unofficial fan-made tool. Warframe and all related assets are the intellectual property of Digital Extremes Ltd. This project is not affiliated with, endorsed by, or sponsored by Digital Extremes Ltd.
          </p>
 
     </div> <script>
-        // --- Background Images ---
+        // --- Configuration ---
         const backgroundImages = [
-             'assets/17038288.jpg' // Use the uploaded image path
-             // Add more paths here later if needed, e.g., 'assets/another-image.jpg'
+             'assets/17038288.jpg',
+             'assets/17038307.jpg' // Added second image path
         ];
+        const APP_VERSION = "0.3.0";
+        const WARFRAME_VERSION = "38.5.11";
+        const THEME_STORAGE_KEY = 'warframeChecklistTheme';
+        const DATA_STORAGE_KEY = `warframeChecklistData_v${APP_VERSION}`;
 
-        // --- Task Data (Full Lists) ---
+        // --- Task Data ---
         const tasks = {
             daily: [
                 { id: 'daily_login', text: 'Log in: Collect the daily login reward.' },
@@ -434,11 +438,6 @@
             ]
         };
 
-        // --- Constants ---
-        const APP_VERSION = "0.2.3";
-        const THEME_STORAGE_KEY = 'warframeChecklistTheme';
-        const DATA_STORAGE_KEY = `warframeChecklistData_v${APP_VERSION}`;
-
         // --- DOM Elements ---
         const bodyElement = document.body;
         const contentElement = document.querySelector('.checklist-content');
@@ -457,22 +456,23 @@
         const errorDisplayElement = document.getElementById('error-display');
         const errorMessageElement = document.getElementById('error-message');
         const errorCloseButton = document.getElementById('error-close-button');
-        const errorCopyButton = document.getElementById('error-copy-button'); // Copy button
+        const errorCopyButton = document.getElementById('error-copy-button');
+        const appVersionElement = document.querySelector('.version-text');
+        const wfVersionElement = document.querySelector('.warframe-version-text');
         let saveStatusTimeout;
-        // Store timeouts and confirmation states in an object
+
+        // --- State Variables ---
         const confirmState = {
             all: { timeout: null, isConfirming: false },
             daily: { timeout: null, isConfirming: false },
             weekly: { timeout: null, isConfirming: false }
         };
-
-        // --- Global State ---
         let checklistData = {
             progress: {}, lastSaved: null, lastDailyReset: null, lastWeeklyReset: null
         };
-        let currentTheme = 'dark'; // Default theme
+        let currentTheme = 'dark';
 
-        // --- Functions ---
+        // --- Function Definitions ---
 
         /** Displays an error message in the UI */
         function displayError(message) {
@@ -480,7 +480,6 @@
             console.error("Displaying Error:", message);
             errorMessageElement.textContent = message;
             errorDisplayElement.classList.add('visible');
-            // Reset copy button text
             if (errorCopyButton) errorCopyButton.textContent = 'Copy';
         }
 
@@ -489,7 +488,7 @@
              if (!errorDisplayElement) return;
              errorDisplayElement.classList.remove('visible');
              errorMessageElement.textContent = '';
-             if (errorCopyButton) errorCopyButton.textContent = 'Copy'; // Reset copy button text
+             if (errorCopyButton) errorCopyButton.textContent = 'Copy';
         }
 
         /** Handles copying the error message to clipboard */
@@ -501,18 +500,16 @@
                 setTimeout(() => { if (errorCopyButton) errorCopyButton.textContent = 'Copy'; }, 2000);
                 return;
             }
-
             navigator.clipboard.writeText(errorMessage).then(() => {
                 console.log("Error message copied to clipboard.");
                 if (errorCopyButton) errorCopyButton.textContent = 'Copied!';
-                setTimeout(() => { if (errorCopyButton) errorCopyButton.textContent = 'Copy'; }, 2000); // Revert text after 2s
+                setTimeout(() => { if (errorCopyButton) errorCopyButton.textContent = 'Copy'; }, 2000);
             }).catch(err => {
                 console.error('Failed to copy error message: ', err);
                  if (errorCopyButton) errorCopyButton.textContent = 'Failed';
                  setTimeout(() => { if (errorCopyButton) errorCopyButton.textContent = 'Copy'; }, 2000);
             });
         }
-
 
         /** Applies the theme by adding/removing the light-mode class from the content div */
         function applyTheme(theme) {
@@ -558,11 +555,16 @@
 
         /** Updates the displayed last saved timestamp. */
         function updateLastSavedDisplay(timestamp) {
-            lastSavedTimestampElement.textContent = `Last saved: ${formatTimestamp(timestamp)}`;
+            if (lastSavedTimestampElement) {
+                lastSavedTimestampElement.textContent = `Last saved: ${formatTimestamp(timestamp)}`;
+            } else {
+                 console.error("lastSavedTimestampElement not found");
+            }
         }
 
         /** Shows a brief "Saved!" message. */
         function showSaveStatus() {
+            if (!saveStatusElement) return;
             clearTimeout(saveStatusTimeout);
             saveStatusElement.style.opacity = '1';
             saveStatusTimeout = setTimeout(() => { saveStatusElement.style.opacity = '0'; }, 1500);
@@ -571,20 +573,20 @@
         /** Gets the timestamp for the most recent Monday at 00:00:00 UTC. */
         function getMostRecentMondayMidnightUTC() {
             const now = new Date();
-            const currentUTCDay = now.getUTCDay(); // 0=Sun, 1=Mon,...
+            const currentUTCDay = now.getUTCDay();
             const daysSinceMondayUTC = (currentUTCDay === 0) ? 6 : currentUTCDay - 1;
             const mondayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
             mondayUTC.setUTCDate(mondayUTC.getUTCDate() - daysSinceMondayUTC);
-            mondayUTC.setUTCHours(0, 0, 0, 0); // Set to midnight UTC
-            return mondayUTC.getTime(); // Return timestamp in milliseconds
+            mondayUTC.setUTCHours(0, 0, 0, 0);
+            return mondayUTC.getTime();
         }
 
          /** Gets the timestamp for the next occurrence of 00:00:00 UTC. */
          function getNextDailyMidnightUTC() {
              const now = new Date();
              const tomorrowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-             tomorrowUTC.setUTCHours(0, 0, 0, 0); // Set to midnight UTC of tomorrow
-             return tomorrowUTC.getTime(); // Return timestamp in milliseconds
+             tomorrowUTC.setUTCHours(0, 0, 0, 0);
+             return tomorrowUTC.getTime();
          }
 
         /** Gets the UTC date string (YYYY-MM-DD) for a given Date object. */
@@ -607,16 +609,19 @@
         function setDailyBackground() {
             const now = new Date();
             const dayOfYear = getUTCDayOfYear(now);
-            const imageIndex = dayOfYear % backgroundImages.length; // Use modulo for rotation
+            const imageIndex = dayOfYear % backgroundImages.length;
             const imageUrl = backgroundImages[imageIndex];
             console.log(`Setting background for UTC day ${dayOfYear}, index ${imageIndex}: ${imageUrl}`);
-            bodyElement.style.backgroundImage = `url('${imageUrl}')`;
+            if (bodyElement) {
+                bodyElement.style.backgroundImage = `url('${imageUrl}')`;
+            } else {
+                 console.error("bodyElement not found");
+            }
         }
 
          /** Displays the local equivalent of the UTC reset times */
          function displayLocalResetTimes() {
             try {
-                // Daily Reset Time
                 const nextDailyResetTimestamp = getNextDailyMidnightUTC();
                 const nextDailyResetDateLocal = new Date(nextDailyResetTimestamp);
                 const dailyLocalString = nextDailyResetDateLocal.toLocaleTimeString(undefined, {
@@ -626,7 +631,6 @@
                     dailyResetTimeElement.textContent = `(Resets ${dailyLocalString} Local)`;
                 } else { console.warn("Daily reset time element not found."); }
 
-                // Weekly Reset Time
                 const nextWeeklyResetTimestamp = getMostRecentMondayMidnightUTC();
                 let targetWeeklyTimestamp = nextWeeklyResetTimestamp;
                  if (new Date().getTime() >= nextWeeklyResetTimestamp) {
@@ -653,7 +657,6 @@
             const todayUTCString = getUTCDateString(now);
             let didReset = false;
 
-            // Daily Reset Check (UTC)
             const lastDailyResetDate = checklistData.lastDailyReset ? new Date(checklistData.lastDailyReset) : null;
             let lastDailyResetUTCString = lastDailyResetDate ? getUTCDateString(lastDailyResetDate) : null;
             if (!lastDailyResetUTCString || lastDailyResetUTCString !== todayUTCString) {
@@ -667,7 +670,6 @@
                 checklistData.lastDailyReset = now.toISOString();
             }
 
-            // Weekly Reset Check (UTC)
             const lastWeeklyResetTimestamp = checklistData.lastWeeklyReset ? new Date(checklistData.lastWeeklyReset).getTime() : null;
             const mostRecentMondayUTCTimestamp = getMostRecentMondayMidnightUTC();
             if (!lastWeeklyResetTimestamp || lastWeeklyResetTimestamp < mostRecentMondayUTCTimestamp) {
@@ -685,48 +687,9 @@
             return didReset;
         }
 
-        /** Loads data from localStorage, performs auto-resets, and saves if resets occurred. */
-        function loadAndInitialize() {
-            hideError(); // Hide any previous errors on load
-            loadThemePreference(); // Load Theme First
-
-            // Load Checklist Data
-            const savedData = localStorage.getItem(DATA_STORAGE_KEY);
-            if (savedData) {
-                try {
-                    const parsedData = JSON.parse(savedData);
-                    if (parsedData && typeof parsedData === 'object') {
-                        checklistData.progress = parsedData.progress || {};
-                        checklistData.lastSaved = parsedData.lastSaved || null;
-                        checklistData.lastDailyReset = parsedData.lastDailyReset || null;
-                        checklistData.lastWeeklyReset = parsedData.lastWeeklyReset || null;
-                    } else { console.warn("Invalid data format found in localStorage. Starting fresh."); }
-                } catch (e) {
-                    console.error("Error parsing saved data:", e);
-                    displayError("Failed to load saved progress. Data might be corrupted.");
-                    checklistData = { progress: {}, lastSaved: null, lastDailyReset: null, lastWeeklyReset: null };
-                }
-            }
-
-            setDailyBackground(); // Set the background image for today
-            displayLocalResetTimes(); // Display local reset times in headers
-
-            const needsSaveAfterReset = runAutoResets();
-            if (needsSaveAfterReset) {
-                console.log("Saving data after auto-reset.");
-                saveData(false); // Save without showing "Saved!" message
-            }
-
-            // Populate UI after loading and potential resets
-            populateSection(dailyList, tasks.daily, checklistData.progress);
-            populateSection(weeklyList, tasks.weekly, checklistData.progress);
-            populateSection(biWeeklyList, tasks.biWeekly, checklistData.progress);
-            updateLastSavedDisplay(checklistData.lastSaved);
-        }
-
         /** Saves the entire current state (checklistData) to localStorage. */
         function saveData(showStatus = true) {
-            hideError(); // Hide error before trying to save
+            hideError();
             checklistData.lastSaved = new Date().toISOString();
             try {
                 localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(checklistData));
@@ -777,7 +740,7 @@
                 console.error("Section element not found for population:", sectionElement);
                 return;
             }
-            sectionElement.innerHTML = ''; // Clear existing items
+            sectionElement.innerHTML = '';
             taskList.forEach(task => {
                 const isChecked = progress[task.id] || false;
                 const listItem = createChecklistItem(task, isChecked);
@@ -788,10 +751,8 @@
         /** Resets the state (text and styling) of a specific reset button */
         function resetSpecificButtonState(buttonElement, defaultText, stateKey) {
             if (!buttonElement || !confirmState[stateKey]) return;
-            // Clear the specific timeout first
             clearTimeout(confirmState[stateKey].timeout);
-            confirmState[stateKey].timeout = null; // Nullify timeout ID
-            // Reset state and appearance
+            confirmState[stateKey].timeout = null;
             confirmState[stateKey].isConfirming = false;
             buttonElement.textContent = defaultText;
             buttonElement.classList.remove('confirming');
@@ -805,7 +766,6 @@
                 return;
             }
 
-             // Reset other buttons' confirmation states first if this one isn't already confirming
              if (!confirmState[confirmKey].isConfirming) {
                  Object.keys(confirmState).forEach(key => {
                      if (key !== confirmKey && confirmState[key].isConfirming) {
@@ -813,37 +773,32 @@
                          if (key === 'all') { btnElement = resetButton; btnText = 'Reset All Checks'; }
                          else if (key === 'daily') { btnElement = resetDailyButton; btnText = 'Reset Daily Checks'; }
                          else if (key === 'weekly') { btnElement = resetWeeklyButton; btnText = 'Reset Weekly Checks'; }
-                         if(btnElement) { // Check if element exists before resetting
+                         if(btnElement) {
                             resetSpecificButtonState(btnElement, btnText, key);
                          }
                      }
                  });
              }
 
-
             if (confirmState[confirmKey].isConfirming) {
-                 // Second click: Execute reset
                  console.log(`${defaultText} confirmed by second click.`);
-                 resetAction(); // Execute the specific reset logic
-                 resetSpecificButtonState(buttonElement, defaultText, confirmKey); // Revert button appearance
+                 resetAction();
+                 resetSpecificButtonState(buttonElement, defaultText, confirmKey);
             } else {
-                 // First click: Start confirmation
                 confirmState[confirmKey].isConfirming = true;
                 buttonElement.textContent = 'Are you Sure?';
                 buttonElement.classList.add('confirming');
-                clearTimeout(confirmState[confirmKey].timeout); // Clear previous timeout if any
+                clearTimeout(confirmState[confirmKey].timeout);
 
                 confirmState[confirmKey].timeout = setTimeout(() => {
-                    // Only reset state if this specific confirmation is still active
                     if (confirmState[confirmKey].isConfirming) {
                         resetSpecificButtonState(buttonElement, defaultText, confirmKey);
                     }
-                }, 10000); // 10 seconds timeout
+                }, 10000);
             }
         }
 
-
-        // --- Specific Reset Actions ---
+        /** Specific Reset Actions */
         function resetAllAction() {
             checklistData = { progress: {}, lastSaved: null, lastDailyReset: null, lastWeeklyReset: null };
             localStorage.removeItem(DATA_STORAGE_KEY);
@@ -856,7 +811,6 @@
             updateLastSavedDisplay(null);
             console.log("Checklist reset complete.");
         }
-
         function resetDailyAction() {
             tasks.daily.forEach(task => {
                 checklistData.progress[task.id] = false;
@@ -871,7 +825,6 @@
             saveData();
             console.log("Daily checks manually reset.");
         }
-
         function resetWeeklyAction() {
             tasks.weekly.forEach(task => {
                 checklistData.progress[task.id] = false;
@@ -900,15 +853,57 @@
             console.log(`Toggled section ${contentId} to ${!isExpanded ? 'expanded' : 'collapsed'}`);
         }
 
+        /** Loads data from localStorage, performs auto-resets, and saves if resets occurred. */
+        function loadAndInitialize() {
+            hideError();
+            loadThemePreference();
+
+            const savedData = localStorage.getItem(DATA_STORAGE_KEY);
+            if (savedData) {
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    if (parsedData && typeof parsedData === 'object') {
+                        checklistData.progress = parsedData.progress || {};
+                        checklistData.lastSaved = parsedData.lastSaved || null;
+                        checklistData.lastDailyReset = parsedData.lastDailyReset || null;
+                        checklistData.lastWeeklyReset = parsedData.lastWeeklyReset || null;
+                    } else { console.warn("Invalid data format found in localStorage. Starting fresh."); }
+                } catch (e) {
+                    console.error("Error parsing saved data:", e);
+                    displayError("Failed to load saved progress. Data might be corrupted.");
+                    checklistData = { progress: {}, lastSaved: null, lastDailyReset: null, lastWeeklyReset: null };
+                }
+            }
+
+            setDailyBackground();
+            displayLocalResetTimes();
+
+            const needsSaveAfterReset = runAutoResets();
+            if (needsSaveAfterReset) {
+                console.log("Saving data after auto-reset.");
+                saveData(false);
+            }
+
+            populateSection(dailyList, tasks.daily, checklistData.progress);
+            populateSection(weeklyList, tasks.weekly, checklistData.progress);
+            populateSection(biWeeklyList, tasks.biWeekly, checklistData.progress);
+            updateLastSavedDisplay(checklistData.lastSaved);
+        }
 
         // --- Initialization ---
+        // Wrap the main initialization in a try...catch
         try {
-            // Set version display
-             document.querySelector('.checklist-content p.version-text').textContent = `Version ${APP_VERSION}`;
+             // Ensure DOM elements are available before assigning text content
+             if(appVersionElement) appVersionElement.textContent = `App Version ${APP_VERSION}`;
+             else console.error("App version element not found!");
 
-            loadAndInitialize(); // Load theme, data, run UTC resets, set background, populate UI
+             if(wfVersionElement) wfVersionElement.textContent = `Warframe Version ${WARFRAME_VERSION}`;
+             else console.error("Warframe version element not found!");
 
-            // Add event listeners for reset buttons using the generic handler
+            // Load data and populate UI
+            loadAndInitialize();
+
+            // Add event listeners after elements are potentially populated
             if (resetDailyButton) { resetDailyButton.addEventListener('click', () => handleResetConfirmation(resetDailyButton, 'daily', 'Reset Daily Checks', resetDailyAction)); }
             else { console.error("Reset Daily button element not found!"); }
 
@@ -918,30 +913,34 @@
             if (resetButton) { resetButton.addEventListener('click', () => handleResetConfirmation(resetButton, 'all', 'Reset All Checks', resetAllAction)); }
             else { console.error("Reset All button element not found!"); }
 
-            // Add event listener for theme toggle button
             if (themeToggleButton) { themeToggleButton.addEventListener('click', handleThemeToggle); }
             else { console.error("Theme toggle button not found!"); }
 
-            // Add event listeners for section toggles
             sectionToggles.forEach(toggle => {
                 toggle.addEventListener('click', handleSectionToggle);
             });
 
-            // Add event listener for error close button
             if (errorCloseButton) {
                  errorCloseButton.addEventListener('click', hideError);
-            }
-            // Add event listener for error copy button
+            } else { console.error("Error close button not found!"); }
+
              if (errorCopyButton) {
                  errorCopyButton.addEventListener('click', copyErrorToClipboard);
-             }
-
+             } else { console.error("Error copy button not found!"); }
 
             console.log(`Warframe Checklist App Initialized (v${APP_VERSION}).`);
+
         } catch(error) {
-             console.error("Error during initialization:", error);
-             // Display a generic initialization error to the user
-             displayError("An unexpected error occurred while starting the checklist.");
+             console.error("Critical Error during initialization:", error);
+             // Attempt to display error even if other elements failed
+             const errDisp = document.getElementById('error-display');
+             const errMsg = document.getElementById('error-message');
+             if(errDisp && errMsg) {
+                errMsg.textContent = "A critical error occurred during startup. Please check the console.";
+                errDisp.classList.add('visible');
+             } else {
+                alert("A critical error occurred during startup. Please check the console."); // Fallback alert
+             }
         }
     </script>
 </body>
