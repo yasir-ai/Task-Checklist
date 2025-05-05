@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warframe Task Checklist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Theme Variables (Applied to .checklist-content) --- */
+        .checklist-content {
+            /* Default: Dark Mode */
+            --bg-content: rgba(31, 41, 55, 0.95); /* gray-800 with opacity */
+            --text-primary: #f3f4f6; /* gray-100 */
+            --text-secondary: #9ca3af; /* gray-400 */
+            --text-muted: #6b7280; /* gray-500 */
+            --text-header: #ffffff; /* white */
+            --text-label: #d1d5db; /* gray-300 */
+            --text-label-checked: #9ca3af; /* gray-400 */
+            --border-color: #4b5563; /* gray-600 */
+            --checkbox-border: #6b7280; /* gray-500 */
+            --checkbox-bg: rgba(255, 255, 255, 0.1);
+            --checkbox-checked-bg: #4f46e5; /* indigo-600 */
+            --checkbox-checked-border: #4f46e5;
+            --link-color: #60a5fa; /* blue-400 */
+            --link-hover-color: #93c5fd; /* blue-300 */
+            --theme-toggle-border: #4b5563; /* gray-600 */
+            --theme-toggle-hover-bg: rgba(255, 255, 255, 0.1);
+            --theme-toggle-hover-border: #9ca3af; /* gray-400 */
+            --theme-toggle-color: #9ca3af; /* gray-400 */
+            --section-header-hover-bg: rgba(255, 255, 255, 0.05);
+            --confirm-bg: #f59e0b; /* amber-500 */
+            --confirm-hover-bg: #d97706; /* amber-600 */
+            --confirm-text: #1f2937; /* gray-800 */
+            --error-bg: #ef4444; /* red-500 */
+            --error-border: #dc2626; /* red-600 */
+            --error-text: #ffffff; /* white */
+            --error-button-bg: rgba(255, 255, 255, 0.1);
+            --error-button-hover-bg: rgba(255, 255, 255, 0.2);
+
+            /* Apply variables */
+            background-color: var(--bg-content);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .checklist-content.light-mode {
+            /* Light Mode Overrides */
+            --bg-content: rgba(255, 255, 255, 0.95); /* white with opacity */
+            --text-primary: #1f2937; /* gray-800 */
+            --text-secondary: #4b5563; /* gray-600 */
+            --text-muted: #6b7280; /* gray-500 */
+            --text-header: #111827; /* gray-900 */
+            --text-label: #374151; /* gray-700 */
+            --text-label-checked: #6b7280; /* gray-500 */
+            --border-color: #e5e7eb; /* gray-200 */
+            --checkbox-border: #cbd5e1; /* gray-300 */
+            --checkbox-bg: rgba(0, 0, 0, 0.02);
+            --link-color: #3b82f6; /* blue-500 */
+            --link-hover-color: #2563eb; /* blue-600 */
+            --theme-toggle-border: #d1d5db; /* gray-300 */
+            --theme-toggle-hover-bg: rgba(0, 0, 0, 0.05);
+            --theme-toggle-hover-border: #6b7280; /* gray-500 */
+            --theme-toggle-color: #6b7280; /* gray-500 */
+            --section-header-hover-bg: rgba(0, 0, 0, 0.03);
+            --error-bg: #fee2e2; /* red-100 */
+            --error-border: #f87171; /* red-400 */
+            --error-text: #b91c1c; /* red-700 */
+            --error-button-bg: rgba(0, 0, 0, 0.05);
+            --error-button-hover-bg: rgba(0, 0, 0, 0.1);
+            /* Confirm colors remain the same */
+        }
+
+        /* --- Base Body Styles (Not affected by theme toggle) --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            background-color: #111827; /* Always dark gray-900 */
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6); /* Always dark overlay */
+            z-index: -1;
+        }
+
+        /* --- Content Box Element Styling (Using Variables) --- */
+        .checklist-content h1 { color: var(--text-header); }
+        .checklist-content h2 { /* Section Header */
+             color: var(--text-header);
+             cursor: pointer;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+             padding: 0.5rem 0.25rem; /* Add some padding for click area */
+             border-radius: 0.25rem;
+             transition: background-color 0.15s ease-in-out;
+        }
+        .checklist-content h2:hover {
+            background-color: var(--section-header-hover-bg);
+        }
+        /* Style for local reset time text */
+        .checklist-content h2 .reset-time-local {
+            font-size: 0.75rem; /* text-xs */
+            font-weight: 400; /* font-normal */
+            color: var(--text-secondary);
+            margin-left: 0.5rem;
+        }
+
+        .checklist-content label { color: var(--text-label); }
+        .checklist-content #last-saved-timestamp,
+        .checklist-content #storage-notice {
+             color: var(--text-muted);
+             font-size: 0.75rem; /* text-xs */
+             margin-top: 0.25rem; /* mt-1 */
+        }
+        .checklist-content .italic { color: var(--text-secondary); }
+        .checklist-content .text-xs { color: var(--text-muted); }
+        .checklist-content .border-b { border-color: var(--border-color); }
+        .checklist-content .app-description { /* Style for the new description */
+            color: var(--text-secondary);
+            margin-top: 0.5rem; /* mt-2 */
+            margin-bottom: 1.5rem; /* mb-6 */
+        }
+        .checklist-content .footer-links { /* Style for footer links */
+             font-size: 0.75rem; /* text-xs */
+             color: var(--text-muted);
+        }
+        .checklist-content .footer-links a {
+             color: var(--link-color);
+             text-decoration: underline;
+             transition: color 0.2s ease;
+             margin: 0 0.25rem; /* Add horizontal spacing */
+        }
+         .checklist-content .footer-links a:hover {
+             color: var(--link-hover-color);
+         }
+         .checklist-content .footer-links span { /* Style for the separator */
+             color: var(--text-muted);
+             margin: 0 0.1rem;
+         }
+
+
+        /* --- Collapsible Section Styles --- */
+        .section-content {
+            overflow: hidden;
+            max-height: 1000px; /* Set a large max-height for expanded state */
+            transition: max-height 0.5s ease-in-out, opacity 0.3s ease-in-out 0.1s, visibility 0s linear 0s;
+            opacity: 1;
+            visibility: visible;
+            padding-left: 0.5rem; /* Indent content slightly */
+        }
+        .section-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: max-height 0.4s ease-in-out, opacity 0.2s ease-in-out, visibility 0s linear 0.4s;
+        }
+        .collapse-icon {
+            width: 1rem; /* w-4 */
+            height: 1rem; /* h-4 */
+            transition: transform 0.3s ease-in-out;
+            flex-shrink: 0; /* Prevent icon from shrinking */
+            margin-left: 0.5rem; /* Space between text and icon */
+        }
+        .section-toggle[aria-expanded="false"] .collapse-icon { /* Rotate when collapsed */
+            transform: rotate(-90deg);
+        }
+
+
+        /* --- Interactive Elements (Using Variables) --- */
+        input[type="checkbox"] {
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            width: 1.25rem; height: 1.25rem;
+            border: 2px solid var(--checkbox-border);
+            border-radius: 0.25rem; cursor: pointer;
+            position: relative; top: 0.2rem; margin-right: 0.5rem;
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+            background-color: var(--checkbox-bg);
+        }
+        input[type="checkbox"]:checked {
+            background-color: var(--checkbox-checked-bg);
+            border-color: var(--checkbox-checked-border);
+        }
+        input[type="checkbox"]:checked::after {
+            content: '✔'; position: absolute;
+            color: white; font-size: 0.8rem;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+        label.checked {
+            text-decoration: line-through;
+            color: var(--text-label-checked);
+        }
+        li { margin-bottom: 0.5rem; }
+        #save-status { transition: opacity 0.5s ease-in-out; }
+
+        /* --- Buttons (Base styles, colors set below) --- */
+        .reset-btn, #theme-toggle-button {
+             margin-top: 1.5rem; /* mt-6 */
+             margin-right: 0.5rem; /* Add spacing between buttons */
+             color: white;
+             font-weight: 600; /* font-semibold */
+             padding: 0.5rem 1rem; /* py-2 px-4 */
+             border-radius: 0.375rem; /* rounded-md */
+             transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+             border: 1px solid transparent; /* Base border */
+             cursor: pointer; /* Ensure pointer cursor */
+             line-height: 1.5; /* Ensure consistent height */
+        }
+        /* Specific Button Colors (Default State) */
+        #reset-daily-button:not(.confirming) { background-color: #3b82f6; border-color: #3b82f6;}
+        #reset-daily-button:not(.confirming):hover { background-color: #2563eb; border-color: #2563eb;}
+        #reset-weekly-button:not(.confirming) { background-color: #14b8a6; border-color: #14b8a6;}
+        #reset-weekly-button:not(.confirming):hover { background-color: #0d9488; border-color: #0d9488;}
+        #reset-button:not(.confirming) { background-color: #ef4444; border-color: #ef4444;}
+        #reset-button:not(.confirming):hover { background-color: #dc2626; border-color: #dc2626;}
+
+        /* Confirmation State Styling (Applies to all reset buttons) */
+        .reset-btn.confirming {
+             background-color: var(--confirm-bg);
+             border-color: var(--confirm-bg);
+             color: var(--confirm-text);
+        }
+        .reset-btn.confirming:hover {
+             background-color: var(--confirm-hover-bg);
+             border-color: var(--confirm-hover-bg);
+        }
+
+
+        /* Theme Toggle Button Specifics (Using Variables) */
+        #theme-toggle-button {
+            background-color: transparent;
+            border: 1px solid var(--theme-toggle-border);
+            color: var(--theme-toggle-color);
+            padding: 0.375rem; /* Slightly smaller padding */
+            margin-top: 0; /* Remove top margin */
+            margin-right: 0; /* Remove right margin */
+        }
+        #theme-toggle-button:hover {
+            background-color: var(--theme-toggle-hover-bg);
+            border-color: var(--theme-toggle-hover-border);
+        }
+        #theme-toggle-button svg {
+            width: 1.25rem; /* w-5 */
+            height: 1.25rem; /* h-5 */
+            fill: currentColor;
+        }
+        /* Hide one icon based on mode */
+        .light-mode #moon-icon { display: none; }
+        .checklist-content:not(.light-mode) #sun-icon { display: none; } /* Target based on content div */
+
+        /* --- Error Display --- */
+        #error-display {
+            background-color: var(--error-bg);
+            color: var(--error-text);
+            border: 1px solid var(--error-border);
+            padding: 0.75rem 1rem; /* p-3 px-4 */
+            border-radius: 0.375rem; /* rounded-md */
+            margin-bottom: 1rem; /* mb-4 */
+            display: none; /* Hidden by default */
+            align-items: center;
+            gap: 0.75rem; /* gap-3 */
+        }
+        #error-display.visible {
+            display: flex;
+        }
+        #error-message {
+            flex-grow: 1;
+            /* margin-right: 1rem; /* Replaced by gap */
+        }
+        #error-copy-button {
+            background-color: var(--error-button-bg);
+            color: var(--error-text);
+            border: 1px solid transparent;
+            padding: 0.25rem 0.5rem; /* p-1 px-2 */
+            font-size: 0.75rem; /* text-xs */
+            border-radius: 0.25rem; /* rounded */
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        #error-copy-button:hover {
+             background-color: var(--error-button-hover-bg);
+        }
+        #error-close-button {
+            background: none;
+            border: none;
+            color: var(--error-text);
+            font-size: 1.5rem; /* text-2xl */
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 0.5rem;
+            opacity: 0.7;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+         #error-close-button:hover {
+            opacity: 1;
+         }
+
+    </style>
+</head>
+<body class="bg-gray-900">
+    <div class="checklist-content max-w-3xl mx-auto my-4 md:my-8 p-6 md:p-8 rounded-lg shadow-xl relative">
+        <div id="error-display">
+            <span id="error-message"></span>
+            <button id="error-copy-button">Copy</button>
+            <button id="error-close-button" aria-label="Close error message">&times;</button>
+        </div>
+
+        <div class="flex justify-between items-start mb-2">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold">Warframe Task Checklist</h1>
+                <p class="app-description text-base">Track your daily, weekly, and bi-weekly Warframe tasks.</p>
+            </div>
+            <div class="text-right flex flex-col items-end">
+                 <button id="theme-toggle-button" aria-label="Toggle theme" class="absolute top-4 right-4 reset-btn">
+                        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.166 7.758a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z"/>
+                        </svg>
+                        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                            <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.7-10.5-10.5 0-3.51 1.713-6.637 4.43-8.565a.75.75 0 01.981.162z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                 <span id="save-status" class="text-sm text-green-600 opacity-0 mt-10">Saved!</span>
+                 <p id="last-saved-timestamp" class="mt-1">Loading...</p>
+                 <p id="storage-notice" class="mt-1">Your progress is saved locally.</p>
+            </div>
+        </div>
+        <div id="checklist-container">
+            <section id="daily-tasks-section" class="mb-8">
+                <h2 class="text-xl font-semibold mb-1 border-b pb-2 text-indigo-700 section-toggle" aria-expanded="true" aria-controls="daily-tasks-content">
+                    <span class="flex-grow">Daily Tasks <span class="reset-time-local" id="daily-reset-local-time">(Resets ...)</span></span>
+                    <svg class="collapse-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </h2>
+                <div id="daily-tasks-content" class="section-content">
+                    <ul class="list-none pl-0 mt-2"></ul>
+                </div>
+            </section>
+
+            <section id="weekly-tasks-section" class="mb-8">
+                <h2 class="text-xl font-semibold mb-1 border-b pb-2 text-teal-700 section-toggle" aria-expanded="true" aria-controls="weekly-tasks-content">
+                    <span class="flex-grow">Weekly Tasks <span class="reset-time-local" id="weekly-reset-local-time">(Resets ...)</span></span>
+                     <svg class="collapse-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </h2>
+                <div id="weekly-tasks-content" class="section-content">
+                    <ul class="list-none pl-0 mt-2"></ul>
+                </div>
+            </section>
+
+            <section id="bi-weekly-tasks-section" class="mb-8">
+                <h2 class="text-xl font-semibold mb-1 border-b pb-2 text-purple-700 section-toggle" aria-expanded="true" aria-controls="bi-weekly-tasks-content">
+                    <span class="flex-grow">Bi-Weekly Task (Every 2 Weeks, Fri-Sun)</span>
+                     <svg class="collapse-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </h2>
+                 <div id="bi-weekly-tasks-content" class="section-content">
+                    <ul class="list-none pl-0 mt-2"></ul>
+                 </div>
+            </section>
+        </div>
+
+         <p class="text-sm italic mt-8">*Remember, you don't have to do everything! Prioritize tasks based on your current goals and progress.*</p>
+         <div class="mt-6 flex flex-wrap">
+             <button id="reset-daily-button" class="reset-btn mb-2">Reset Daily Checks</button>
+             <button id="reset-weekly-button" class="reset-btn mb-2">Reset Weekly Checks</button>
+             <button id="reset-button" class="reset-btn mb-2">Reset All Checks</button>
+         </div>
+
+         <div class="text-center mt-8 footer-links">
+             <a href="https://github.com/warframe-tools/Task-Checklist" target="_blank" rel="noopener noreferrer">Github</a>
+             <span>|</span>
+             <a href="https://github.com/warframe-tools/Task-Checklist?tab=GPL-3.0-1-ov-file" target="_blank" rel="noopener noreferrer">License (GPLv3)</a>
+             <span>|</span>
+             <a href="https://hub.warframestat.us/" target="_blank" rel="noopener noreferrer">Warframe Hub</a>
+             <span>|</span>
+             <a href="https://warframe.fandom.com/" target="_blank" rel="noopener noreferrer">Warframe Wiki</a>
+             <span>|</span>
+             <a href="https://framehub.paroxity.net/" target="_blank" rel="noopener noreferrer">FrameHub</a>
+         </div>
+
+         <p class="text-xs text-center mt-4 version-text">Version ${APP_VERSION}</p>
+         <p class="text-xs text-center mt-2 px-4 disclaimer-text">
+             This is an unofficial fan-made tool. Warframe and all related assets are the intellectual property of Digital Extremes Ltd. This project is not affiliated with, endorsed by, or sponsored by Digital Extremes Ltd.
+         </p>
+
+    </div> <script>
+        // --- Background Images ---
+        const backgroundImages = [
+             '/docs/assets/17038288.jpg' // Use the uploaded image path
+             // Add more paths here later if needed, e.g., '/docs/assets/another-image.jpg'
+        ];
+
+        // --- Task Data (Full Lists) ---
+        const tasks = {
+            daily: [
+                { id: 'daily_login', text: 'Log in: Collect the daily login reward.' },
+                { id: 'daily_craft_forma', text: 'Crafting (Forma): Start building a new Forma (and collect finished ones).' },
+                { id: 'daily_craft_other', text: 'Crafting (Other): Craft other daily resources/items using reusable blueprints (check Foundry/companion app).' },
+                { id: 'daily_syndicate_gain', text: 'Syndicates (Orbiter): Gain daily standing cap with your pledged Syndicate(s).' },
+                { id: 'daily_syndicate_spend', text: 'Syndicates (Orbiter - Spend): If maxed on standing, spend it (Relic packs, Vosfor packs, etc.).' },
+                { id: 'daily_dark_sector', text: 'Dark Sector Mission (Early Game): Complete one Dark Sector mission first for double credits (if needed & pre-Index).' },
+                { id: 'daily_world_syndicate', text: 'World Syndicates (Standing): Gain standing with relevant world Syndicates (Ostron, Solaris, Entrati, Cavia, etc.).' },
+                { id: 'daily_sortie', text: 'Sortie: Complete the 3 daily Sortie missions (requires The War Within).' },
+                { id: 'daily_focus', text: 'Focus: Max out daily Focus gain (e.g., via Sanctuary Onslaught) (requires The Second Dream).' },
+                { id: 'daily_steel_path', text: 'Steel Path Incursions: Complete daily Steel Path missions for Steel Essence (requires Steel Path unlocked).' }
+            ],
+            weekly: [
+                { id: 'weekly_nightwave_complete', text: 'Nightwave: Complete relevant weekly Nightwave missions.' },
+                { id: 'weekly_nightwave_spend', text: 'Nightwave (Spend): Spend Nightwave credits if needed (Aura mods, Catalysts/Reactors, etc.).' },
+                { id: 'weekly_ayatan', text: 'Ayatan Treasure Hunt: Complete Maru\'s weekly mission for an Ayatan Sculpture.' },
+                { id: 'weekly_iron_wake', text: 'Iron Wake (Paladino): Trade Riven Slivers with Paladino (requires The Chains of Harrow).' },
+                { id: 'weekly_yonta', text: 'Archimedian Yonta (Zariman): Buy weekly Kuva with Voidplumes.' },
+                { id: 'weekly_acridies', text: 'Acridies (Duviri/Dormizone): Check wares and spend Pathos Clamps if desired (Catalysts/Reactors recommended if needed).' },
+                { id: 'weekly_archon_hunt', text: 'Archon Hunt: Complete the weekly Archon Hunt for a guaranteed Archon Shard (requires The New War).' },
+                { id: 'weekly_duviri_circuit', text: 'Duviri Circuit (Steel Path): Check weekly Incarnon Adapters & run Circuit if desired (requires Steel Path & Duviri).' },
+                { id: 'weekly_teshin', text: 'Teshin (Steel Path): Check Teshin\'s Steel Essence shop (especially for Umbra Forma rotation - approx. every 8 weeks).' },
+                { id: 'weekly_netracells', text: 'Netracells (Tagfer): Complete up to 5 weekly Netracell missions for Archon Shard chances (requires Whispers in the Walls).' },
+                { id: 'weekly_archimedea', text: 'Elite Deep Archimedea (Loid): Attempt weekly Elite Deep Archimedea for high Archon Shard chances (very endgame, requires Whispers in the Walls).' },
+                { id: 'weekly_bird3', text: 'Bird 3 (Cavia Syndicate): Buy the weekly Archon Shard for 30k Cavia Standing.' },
+                { id: 'weekly_calendar', text: 'Calendar (POM-2 Terminal): Complete weekly Calendar tasks (requires Warframe 1999).' }
+            ],
+            biWeekly: [
+                { id: 'biweekly_baro', text: 'Baro Ki\'Teer: Check Baro Ki\'Teer\'s inventory on a Relay and purchase desired items with Ducats (trade Prime parts for Ducats).' }
+            ]
+        };
+
+        // --- Constants ---
+        const APP_VERSION = "0.2.3";
+        const THEME_STORAGE_KEY = 'warframeChecklistTheme';
+        const DATA_STORAGE_KEY = `warframeChecklistData_v${APP_VERSION}`;
+
+        // --- DOM Elements ---
+        const bodyElement = document.body;
+        const contentElement = document.querySelector('.checklist-content');
+        const themeToggleButton = document.getElementById('theme-toggle-button');
+        const dailyList = document.querySelector('#daily-tasks-content ul');
+        const weeklyList = document.querySelector('#weekly-tasks-content ul');
+        const biWeeklyList = document.querySelector('#bi-weekly-tasks-content ul');
+        const resetDailyButton = document.getElementById('reset-daily-button');
+        const resetWeeklyButton = document.getElementById('reset-weekly-button');
+        const resetButton = document.getElementById('reset-button');
+        const lastSavedTimestampElement = document.getElementById('last-saved-timestamp');
+        const saveStatusElement = document.getElementById('save-status');
+        const sectionToggles = document.querySelectorAll('.section-toggle');
+        const dailyResetTimeElement = document.getElementById('daily-reset-local-time');
+        const weeklyResetTimeElement = document.getElementById('weekly-reset-local-time');
+        const errorDisplayElement = document.getElementById('error-display');
+        const errorMessageElement = document.getElementById('error-message');
+        const errorCloseButton = document.getElementById('error-close-button');
+        const errorCopyButton = document.getElementById('error-copy-button'); // Copy button
+        let saveStatusTimeout;
+        // Store timeouts and confirmation states in an object
+        const confirmState = {
+            all: { timeout: null, isConfirming: false },
+            daily: { timeout: null, isConfirming: false },
+            weekly: { timeout: null, isConfirming: false }
+        };
+
+        // --- Global State ---
+        let checklistData = {
+            progress: {}, lastSaved: null, lastDailyReset: null, lastWeeklyReset: null
+        };
+        let currentTheme = 'dark'; // Default theme
+
+        // --- Functions ---
+
+        /** Displays an error message in the UI */
+        function displayError(message) {
+            if (!errorDisplayElement || !errorMessageElement) return;
+            console.error("Displaying Error:", message);
+            errorMessageElement.textContent = message;
+            errorDisplayElement.classList.add('visible');
+            // Reset copy button text
+            if (errorCopyButton) errorCopyButton.textContent = 'Copy';
+        }
+
+        /** Hides the error message area */
+        function hideError() {
+             if (!errorDisplayElement) return;
+             errorDisplayElement.classList.remove('visible');
+             errorMessageElement.textContent = '';
+             if (errorCopyButton) errorCopyButton.textContent = 'Copy'; // Reset copy button text
+        }
+
+        /** Handles copying the error message to clipboard */
+        function copyErrorToClipboard() {
+            const errorMessage = errorMessageElement.textContent;
+            if (!errorMessage || !navigator.clipboard) {
+                console.warn("Clipboard API not available or no error message to copy.");
+                if (errorCopyButton) errorCopyButton.textContent = 'Failed';
+                setTimeout(() => { if (errorCopyButton) errorCopyButton.textContent = 'Copy'; }, 2000);
+                return;
+            }
+
+            navigator.clipboard.writeText(errorMessage).then(() => {
+                console.log("Error message copied to clipboard.");
+                if (errorCopyButton) errorCopyButton.textContent = 'Copied!';
+                setTimeout(() => { if (errorCopyButton) errorCopyButton.textContent = 'Copy'; }, 2000); // Revert text after 2s
+            }).catch(err => {
+                console.error('Failed to copy error message: ', err);
+                 if (errorCopyButton) errorCopyButton.textContent = 'Failed';
+                 setTimeout(() => { if (errorCopyButton) errorCopyButton.textContent = 'Copy'; }, 2000);
+            });
+        }
+
+
+        /** Applies the theme by adding/removing the light-mode class from the content div */
+        function applyTheme(theme) {
+            if (!contentElement) return;
+            if (theme === 'light') {
+                contentElement.classList.add('light-mode');
+            } else {
+                contentElement.classList.remove('light-mode');
+            }
+            currentTheme = theme;
+            console.log(`Theme applied to content: ${theme}`);
+        }
+
+        /** Handles theme toggle button click */
+        function handleThemeToggle() {
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            applyTheme(newTheme);
+            try { localStorage.setItem(THEME_STORAGE_KEY, newTheme); }
+            catch (e) { console.error("Could not save theme preference:", e); }
+        }
+
+        /** Loads theme preference from localStorage */
+        function loadThemePreference() {
+             let savedTheme = 'dark';
+             try {
+                 const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+                 if (storedTheme === 'light' || storedTheme === 'dark') { savedTheme = storedTheme; }
+             } catch (e) {
+                 console.error("Could not load theme preference:", e);
+             }
+             applyTheme(savedTheme);
+        }
+
+        /** Formats a Date object or timestamp string into a readable format (local time). */
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'Never';
+            try {
+                const date = new Date(timestamp);
+                if (isNaN(date.getTime())) return 'Invalid Date';
+                return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+            } catch (e) { console.error("Error formatting timestamp:", e); return 'Error'; }
+        }
+
+        /** Updates the displayed last saved timestamp. */
+        function updateLastSavedDisplay(timestamp) {
+            lastSavedTimestampElement.textContent = `Last saved: ${formatTimestamp(timestamp)}`;
+        }
+
+        /** Shows a brief "Saved!" message. */
+        function showSaveStatus() {
+            clearTimeout(saveStatusTimeout);
+            saveStatusElement.style.opacity = '1';
+            saveStatusTimeout = setTimeout(() => { saveStatusElement.style.opacity = '0'; }, 1500);
+        }
+
+        /** Gets the timestamp for the most recent Monday at 00:00:00 UTC. */
+        function getMostRecentMondayMidnightUTC() {
+            const now = new Date();
+            const currentUTCDay = now.getUTCDay(); // 0=Sun, 1=Mon,...
+            const daysSinceMondayUTC = (currentUTCDay === 0) ? 6 : currentUTCDay - 1;
+            const mondayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+            mondayUTC.setUTCDate(mondayUTC.getUTCDate() - daysSinceMondayUTC);
+            mondayUTC.setUTCHours(0, 0, 0, 0); // Set to midnight UTC
+            return mondayUTC.getTime(); // Return timestamp in milliseconds
+        }
+
+         /** Gets the timestamp for the next occurrence of 00:00:00 UTC. */
+         function getNextDailyMidnightUTC() {
+             const now = new Date();
+             const tomorrowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
+             tomorrowUTC.setUTCHours(0, 0, 0, 0); // Set to midnight UTC of tomorrow
+             return tomorrowUTC.getTime(); // Return timestamp in milliseconds
+         }
+
+        /** Gets the UTC date string (YYYY-MM-DD) for a given Date object. */
+        function getUTCDateString(dateObj) {
+            const year = dateObj.getUTCFullYear();
+            const month = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
+            const day = dateObj.getUTCDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        /** Gets the day of the year (1-366) in UTC. */
+        function getUTCDayOfYear(date) {
+            const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 0);
+            const diff = date.getTime() - startOfYear;
+            const oneDay = 1000 * 60 * 60 * 24;
+            return Math.floor(diff / oneDay);
+        }
+
+        /** Sets the daily rotating background image. */
+        function setDailyBackground() {
+            const now = new Date();
+            const dayOfYear = getUTCDayOfYear(now);
+            const imageIndex = dayOfYear % backgroundImages.length; // Use modulo for rotation
+            const imageUrl = backgroundImages[imageIndex];
+            console.log(`Setting background for UTC day ${dayOfYear}, index ${imageIndex}: ${imageUrl}`);
+            bodyElement.style.backgroundImage = `url('${imageUrl}')`;
+        }
+
+         /** Displays the local equivalent of the UTC reset times */
+         function displayLocalResetTimes() {
+            try {
+                // Daily Reset Time
+                const nextDailyResetTimestamp = getNextDailyMidnightUTC();
+                const nextDailyResetDateLocal = new Date(nextDailyResetTimestamp);
+                const dailyLocalString = nextDailyResetDateLocal.toLocaleTimeString(undefined, {
+                    hour: 'numeric', minute: '2-digit'
+                });
+                if (dailyResetTimeElement) {
+                    dailyResetTimeElement.textContent = `(Resets ${dailyLocalString} Local)`;
+                } else { console.warn("Daily reset time element not found."); }
+
+                // Weekly Reset Time
+                const nextWeeklyResetTimestamp = getMostRecentMondayMidnightUTC();
+                let targetWeeklyTimestamp = nextWeeklyResetTimestamp;
+                 if (new Date().getTime() >= nextWeeklyResetTimestamp) {
+                     targetWeeklyTimestamp += 7 * 24 * 60 * 60 * 1000;
+                 }
+                const nextWeeklyResetDateLocal = new Date(targetWeeklyTimestamp);
+                const weeklyLocalString = nextWeeklyResetDateLocal.toLocaleTimeString(undefined, {
+                    weekday: 'short', hour: 'numeric', minute: '2-digit'
+                });
+                 if (weeklyResetTimeElement) {
+                    weeklyResetTimeElement.textContent = `(Resets ${weeklyLocalString} Local)`;
+                } else { console.warn("Weekly reset time element not found."); }
+            } catch (e) {
+                console.error("Error calculating or displaying local reset times:", e);
+                 if (dailyResetTimeElement) dailyResetTimeElement.textContent = `(Resets 00:00 UTC)`;
+                 if (weeklyResetTimeElement) weeklyResetTimeElement.textContent = `(Resets Mon 00:00 UTC)`;
+            }
+        }
+
+        /** Checks if daily/weekly resets are needed based on UTC time and performs them. */
+        function runAutoResets() {
+            const now = new Date();
+            const nowUTCTimestamp = now.getTime();
+            const todayUTCString = getUTCDateString(now);
+            let didReset = false;
+
+            // Daily Reset Check (UTC)
+            const lastDailyResetDate = checklistData.lastDailyReset ? new Date(checklistData.lastDailyReset) : null;
+            let lastDailyResetUTCString = lastDailyResetDate ? getUTCDateString(lastDailyResetDate) : null;
+            if (!lastDailyResetUTCString || lastDailyResetUTCString !== todayUTCString) {
+                console.log(`Performing daily auto-reset (UTC). Today: ${todayUTCString}, Last Reset: ${lastDailyResetUTCString}`);
+                tasks.daily.forEach(task => {
+                    if (checklistData.progress[task.id]) {
+                        checklistData.progress[task.id] = false;
+                        didReset = true;
+                    }
+                });
+                checklistData.lastDailyReset = now.toISOString();
+            }
+
+            // Weekly Reset Check (UTC)
+            const lastWeeklyResetTimestamp = checklistData.lastWeeklyReset ? new Date(checklistData.lastWeeklyReset).getTime() : null;
+            const mostRecentMondayUTCTimestamp = getMostRecentMondayMidnightUTC();
+            if (!lastWeeklyResetTimestamp || lastWeeklyResetTimestamp < mostRecentMondayUTCTimestamp) {
+                 if (nowUTCTimestamp >= mostRecentMondayUTCTimestamp) {
+                    console.log(`Performing weekly auto-reset (UTC). Current Time: ${nowUTCTimestamp}, Last Reset: ${lastWeeklyResetTimestamp}, Target Monday: ${mostRecentMondayUTCTimestamp}`);
+                    tasks.weekly.forEach(task => {
+                        if (checklistData.progress[task.id]) {
+                            checklistData.progress[task.id] = false;
+                            didReset = true;
+                        }
+                    });
+                    checklistData.lastWeeklyReset = now.toISOString();
+                 }
+            }
+            return didReset;
+        }
+
+        /** Loads data from localStorage, performs auto-resets, and saves if resets occurred. */
+        function loadAndInitialize() {
+            hideError(); // Hide any previous errors on load
+            loadThemePreference(); // Load Theme First
+
+            // Load Checklist Data
+            const savedData = localStorage.getItem(DATA_STORAGE_KEY);
+            if (savedData) {
+                try {
+                    const parsedData = JSON.parse(savedData);
+                    if (parsedData && typeof parsedData === 'object') {
+                        checklistData.progress = parsedData.progress || {};
+                        checklistData.lastSaved = parsedData.lastSaved || null;
+                        checklistData.lastDailyReset = parsedData.lastDailyReset || null;
+                        checklistData.lastWeeklyReset = parsedData.lastWeeklyReset || null;
+                    } else { console.warn("Invalid data format found in localStorage. Starting fresh."); }
+                } catch (e) {
+                    console.error("Error parsing saved data:", e);
+                    displayError("Failed to load saved progress. Data might be corrupted.");
+                    checklistData = { progress: {}, lastSaved: null, lastDailyReset: null, lastWeeklyReset: null };
+                }
+            }
+
+            setDailyBackground(); // Set the background image for today
+            displayLocalResetTimes(); // Display local reset times in headers
+
+            const needsSaveAfterReset = runAutoResets();
+            if (needsSaveAfterReset) {
+                console.log("Saving data after auto-reset.");
+                saveData(false); // Save without showing "Saved!" message
+            }
+
+            // Populate UI after loading and potential resets
+            populateSection(dailyList, tasks.daily, checklistData.progress);
+            populateSection(weeklyList, tasks.weekly, checklistData.progress);
+            populateSection(biWeeklyList, tasks.biWeekly, checklistData.progress);
+            updateLastSavedDisplay(checklistData.lastSaved);
+        }
+
+        /** Saves the entire current state (checklistData) to localStorage. */
+        function saveData(showStatus = true) {
+            hideError(); // Hide error before trying to save
+            checklistData.lastSaved = new Date().toISOString();
+            try {
+                localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(checklistData));
+                updateLastSavedDisplay(checklistData.lastSaved);
+                if (showStatus) { showSaveStatus(); }
+            } catch (e) {
+                console.error("Error saving data to localStorage:", e);
+                let userMessage = "Could not save progress.";
+                if (e.name === 'QuotaExceededError' || (e.code && (e.code === 22 || e.code === 1014))) {
+                     userMessage = "Could not save progress. Browser storage might be full.";
+                }
+                displayError(userMessage);
+            }
+        }
+
+        /** Creates a checklist item (list item with checkbox and label). */
+        function createChecklistItem(task, isChecked) {
+            const listItem = document.createElement('li');
+            listItem.classList.add('flex', 'items-start', 'mb-2');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = task.id;
+            checkbox.checked = isChecked;
+            checkbox.classList.add('mt-1');
+            const label = document.createElement('label');
+            label.htmlFor = task.id;
+            label.textContent = task.text;
+            label.classList.add('ml-2', 'flex-1', 'cursor-pointer');
+            if (isChecked) { label.classList.add('checked'); }
+
+            checkbox.addEventListener('change', (event) => {
+                checklistData.progress[task.id] = event.target.checked;
+                saveData();
+                label.classList.toggle('checked', event.target.checked);
+            });
+            label.addEventListener('click', () => {
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+            listItem.appendChild(checkbox);
+            listItem.appendChild(label);
+            return listItem;
+        }
+
+        /** Populates a given section (UL element) with checklist items. */
+        function populateSection(sectionElement, taskList, progress) {
+            if (!sectionElement) {
+                console.error("Section element not found for population:", sectionElement);
+                return;
+            }
+            sectionElement.innerHTML = ''; // Clear existing items
+            taskList.forEach(task => {
+                const isChecked = progress[task.id] || false;
+                const listItem = createChecklistItem(task, isChecked);
+                sectionElement.appendChild(listItem);
+            });
+        }
+
+        /** Resets the state (text and styling) of a specific reset button */
+        function resetSpecificButtonState(buttonElement, defaultText, stateKey) {
+            if (!buttonElement || !confirmState[stateKey]) return;
+            // Clear the specific timeout first
+            clearTimeout(confirmState[stateKey].timeout);
+            confirmState[stateKey].timeout = null; // Nullify timeout ID
+            // Reset state and appearance
+            confirmState[stateKey].isConfirming = false;
+            buttonElement.textContent = defaultText;
+            buttonElement.classList.remove('confirming');
+            console.log(`Button ${buttonElement.id} state reverted.`);
+        }
+
+        /** Generic handler for reset button clicks with confirmation */
+        function handleResetConfirmation(buttonElement, confirmKey, defaultText, resetAction) {
+            if (!confirmState[confirmKey]) {
+                console.error("Invalid confirmKey:", confirmKey);
+                return;
+            }
+
+             // Reset other buttons' confirmation states first if this one isn't already confirming
+             if (!confirmState[confirmKey].isConfirming) {
+                 Object.keys(confirmState).forEach(key => {
+                     if (key !== confirmKey && confirmState[key].isConfirming) {
+                         let btnElement, btnText;
+                         if (key === 'all') { btnElement = resetButton; btnText = 'Reset All Checks'; }
+                         else if (key === 'daily') { btnElement = resetDailyButton; btnText = 'Reset Daily Checks'; }
+                         else if (key === 'weekly') { btnElement = resetWeeklyButton; btnText = 'Reset Weekly Checks'; }
+                         if(btnElement) { // Check if element exists before resetting
+                            resetSpecificButtonState(btnElement, btnText, key);
+                         }
+                     }
+                 });
+             }
+
+
+            if (confirmState[confirmKey].isConfirming) {
+                 // Second click: Execute reset
+                 console.log(`${defaultText} confirmed by second click.`);
+                 resetAction(); // Execute the specific reset logic
+                 resetSpecificButtonState(buttonElement, defaultText, confirmKey); // Revert button appearance
+            } else {
+                 // First click: Start confirmation
+                confirmState[confirmKey].isConfirming = true;
+                buttonElement.textContent = 'Are you Sure?';
+                buttonElement.classList.add('confirming');
+                clearTimeout(confirmState[confirmKey].timeout); // Clear previous timeout if any
+
+                confirmState[confirmKey].timeout = setTimeout(() => {
+                    // Only reset state if this specific confirmation is still active
+                    if (confirmState[confirmKey].isConfirming) {
+                        resetSpecificButtonState(buttonElement, defaultText, confirmKey);
+                    }
+                }, 10000); // 10 seconds timeout
+            }
+        }
+
+
+        // --- Specific Reset Actions ---
+        function resetAllAction() {
+            checklistData = { progress: {}, lastSaved: null, lastDailyReset: null, lastWeeklyReset: null };
+            localStorage.removeItem(DATA_STORAGE_KEY);
+            const allCheckboxes = document.querySelectorAll('#checklist-container input[type="checkbox"]');
+            allCheckboxes.forEach((checkbox) => {
+                checkbox.checked = false;
+                const label = document.querySelector(`label[for="${checkbox.id}"]`);
+                if (label) label.classList.remove('checked');
+            });
+            updateLastSavedDisplay(null);
+            console.log("Checklist reset complete.");
+        }
+
+        function resetDailyAction() {
+            tasks.daily.forEach(task => {
+                checklistData.progress[task.id] = false;
+                const checkbox = document.getElementById(task.id);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    const label = document.querySelector(`label[for="${task.id}"]`);
+                    if (label) label.classList.remove('checked');
+                }
+            });
+            checklistData.lastDailyReset = new Date().toISOString();
+            saveData();
+            console.log("Daily checks manually reset.");
+        }
+
+        function resetWeeklyAction() {
+            tasks.weekly.forEach(task => {
+                checklistData.progress[task.id] = false;
+                const checkbox = document.getElementById(task.id);
+                if (checkbox) {
+                    checkbox.checked = false;
+                    const label = document.querySelector(`label[for="${task.id}"]`);
+                    if (label) label.classList.remove('checked');
+                }
+            });
+            checklistData.lastWeeklyReset = new Date().toISOString();
+            saveData();
+            console.log("Weekly checks manually reset.");
+        }
+
+        /** Handles click on a section header to toggle collapse */
+        function handleSectionToggle(event) {
+            const header = event.target.closest('.section-toggle');
+            if (!header) return;
+            const contentId = header.getAttribute('aria-controls');
+            const contentDiv = document.getElementById(contentId);
+            if (!contentDiv) return;
+            const isExpanded = header.getAttribute('aria-expanded') === 'true';
+            header.setAttribute('aria-expanded', !isExpanded);
+            contentDiv.classList.toggle('collapsed', isExpanded);
+            console.log(`Toggled section ${contentId} to ${!isExpanded ? 'expanded' : 'collapsed'}`);
+        }
+
+
+        // --- Initialization ---
+        try {
+            // Set version display
+             document.querySelector('.checklist-content p.version-text').textContent = `Version ${APP_VERSION}`;
+
+            loadAndInitialize(); // Load theme, data, run UTC resets, set background, populate UI
+
+            // Add event listeners for reset buttons using the generic handler
+            if (resetDailyButton) { resetDailyButton.addEventListener('click', () => handleResetConfirmation(resetDailyButton, 'daily', 'Reset Daily Checks', resetDailyAction)); }
+            else { console.error("Reset Daily button element not found!"); }
+
+            if (resetWeeklyButton) { resetWeeklyButton.addEventListener('click', () => handleResetConfirmation(resetWeeklyButton, 'weekly', 'Reset Weekly Checks', resetWeeklyAction)); }
+            else { console.error("Reset Weekly button element not found!"); }
+
+            if (resetButton) { resetButton.addEventListener('click', () => handleResetConfirmation(resetButton, 'all', 'Reset All Checks', resetAllAction)); }
+            else { console.error("Reset All button element not found!"); }
+
+            // Add event listener for theme toggle button
+            if (themeToggleButton) { themeToggleButton.addEventListener('click', handleThemeToggle); }
+            else { console.error("Theme toggle button not found!"); }
+
+            // Add event listeners for section toggles
+            sectionToggles.forEach(toggle => {
+                toggle.addEventListener('click', handleSectionToggle);
+            });
+
+            // Add event listener for error close button
+            if (errorCloseButton) {
+                 errorCloseButton.addEventListener('click', hideError);
+            }
+            // Add event listener for error copy button
+             if (errorCopyButton) {
+                 errorCopyButton.addEventListener('click', copyErrorToClipboard);
+             }
+
+
+            console.log(`Warframe Checklist App Initialized (v${APP_VERSION}).`);
+        } catch(error) {
+             console.error("Error during initialization:", error);
+             // Display a generic initialization error to the user
+             displayError("An unexpected error occurred while starting the checklist.");
+        }
+    </script>
+</body>
+</html>
