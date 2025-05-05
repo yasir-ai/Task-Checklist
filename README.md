@@ -24,7 +24,7 @@ This tool provides checklists for common recurring activities in Warframe. It sa
 
 ## How to Use
 
-1.  **Download:** Download the `index.html` file and the `images` folder.
+1.  **Download:** Download the `index.html` file and the `assets` folder.
 2.  **Placement:** Ensure the `images` folder is in the same directory as the `.html` file.
 3.  **Open:** Open the `index.html` file in your web browser.
 
