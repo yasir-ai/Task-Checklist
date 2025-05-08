@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/warframe-tools/Task-Checklist)
+
 # Warframe Task Checklist Web App
 
 A simple, client-side web application to help Warframe players track their daily, weekly, and bi-weekly in-game tasks.
