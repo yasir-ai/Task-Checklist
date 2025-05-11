@@ -21,7 +21,7 @@ This tool provides checklists for common recurring activities in Warframe. It sa
     * **Hide Individual Tasks:** Each task has an eye icon to hide it from view. Hidden tasks are saved and persist across sessions.
     * **Hide Entire Sections:** If all tasks within a section are individually hidden, a "Hide Section" button will appear on the section header, allowing you to hide the entire section.
 * **Local Progress Saving:** Your checked tasks and hidden task preferences are saved directly in your browser's local storage.
-    * **Version-Aware Storage:** Save data for patch/hotfix versions (e.g., v1.1.0, v1.1.1) are compatible, while major version changes (e.g., v1.x.x to v2.0.0) will start fresh.
+    * **Version-Aware Storage:** Save data for patch/hotfix versions (e.g., v1.1.0, v1.1.1) are compatible, while major version changes (e.g., v1.0.0 to v2.0.0) will start fresh.
 * **Automatic Resets with Local Time Display:**
     * Daily tasks reset automatically after 00:00 UTC.
     * Weekly tasks reset automatically after Monday 00:00 UTC.
