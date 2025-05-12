@@ -1,8 +1,8 @@
 # Workflow for deploying to GitHub Pages
-name: Deploy static content to Pages
+name: Deploy New Version to Pages on Weekly Reset
 
 on:
-  # Runs on pushes targeting the default branch
+  # Runs on weekly reset (UTC 00:00, Monday)
   schedule:
     - cron: "0 0 * * 1"
 
