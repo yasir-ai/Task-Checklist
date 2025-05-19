@@ -120,7 +120,6 @@ If you encounter a bug, graphical glitch, or something isn't working as expected
 
 If you find this tool useful, consider supporting its development!
 
-* **GitHub Sponsors:** You can sponsor this project via the [Sponsor](https://github.com/sponsors/warframe-tools) button on the repository page.
 * **Create a Pull Request:** Do you have a feature you would like added, or a task that you would like added that could benefit other Tenno? Fork the repository, and create a pull request!
 
 ## Credits
