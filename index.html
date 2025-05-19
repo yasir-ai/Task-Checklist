@@ -219,7 +219,7 @@
             color: var(--text-muted);
             cursor: pointer;
             padding: 0.125rem;
-            margin-left: 0.25rem; /* Reduced margin for tighter packing */
+            margin-left: 0.25rem;
             opacity: 0.6;
             display: inline-flex;
             align-items: center;
@@ -227,12 +227,12 @@
             flex-shrink: 0;
         }
         .hide-task-btn svg, .notification-toggle-btn svg {
-            width: 1rem; /* w-4 */
-            height: 1rem; /* h-4 */
+            width: 1rem;
+            height: 1rem;
         }
         .hide-task-btn:hover, .notification-toggle-btn:hover { opacity: 1; }
         .notification-toggle-btn.active {
-            color: var(--notification-btn-active-color); /* Green when active */
+            color: var(--notification-btn-active-color);
             opacity: 1;
         }
         .section-is-hidden-by-user {
@@ -269,6 +269,7 @@
             width: 1.25rem; height: 1.25rem;
             border: 2px solid var(--checkbox-border);
             border-radius: 0.25rem; cursor: pointer;
+            position: relative;
             margin-right: 0.5rem;
             transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
             background-color: var(--checkbox-bg);
@@ -585,7 +586,7 @@
              'assets/gara-eidolon.jpg',
              'assets/heart-of-deimos-warframe.jpg'
         ];
-        const APP_VERSION = "2.2.0";
+        const APP_VERSION = "2.2.1";
         const WARFRAME_VERSION = "38.5.11";
         const THEME_STORAGE_KEY = 'warframeChecklistTheme';
 
@@ -1145,6 +1146,7 @@
             checkbox.type = 'checkbox';
             checkbox.id = task.id;
             checkbox.checked = isChecked;
+            checkbox.classList.add('position-relative');
             if (isSubtask) {
                 checkbox.dataset.parentId = task.parentId;
             }
@@ -1159,8 +1161,6 @@
                 notificationButton.title = `Toggle notifications for ${task.text.split(':')[0]}`;
 
                 const bellIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>`;
-                // Bell slash icon (no longer used, but kept for reference if needed later)
-                // const bellSlashIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-7.5-3l-4.5-4.5m0 0A23.856 23.856 0 013.856 4.5m0 0V2.25m0 2.25H1.5m2.356 0L1.5 6.75m2.356-2.25L6.25 6.75m7.5-3l3.808 3.808M15 4.5V2.25m0 2.25h.75m-.75 0l-.375.375M15 4.5l.375.375m-.375-.375L15.375 6.75m-3.375 9.75L9.75 19.5m0 0l-2.25 2.25M9.75 19.5l-2.25-2.25M9.75 19.5l2.25 2.25m-2.25-2.25L12 17.25m9-9l-3.65 3.65m3.65-3.65a10.45 10.45 0 01-1.372 6.228M19.5 12a10.453 10.453 0 01-1.372 6.228m0 0l-3.65 3.65m-12.456-3.65a10.453 10.453 0 016.228-1.372m0 0V21m0-2.25v-2.25a10.453 10.453 0 00-6.228-1.372m0 0l-3.65-3.65M12 12a3 3 0 100-6 3 3 0 000 6z" /></svg>`;
 
                 notificationButton.innerHTML = bellIcon;
                 if(checklistData.notificationPreferences[task.id]) notificationButton.classList.add('active');
@@ -1194,7 +1194,7 @@
 
 
             if (task.isParent) {
-                listItem.classList.add('parent-task-container', 'flex', 'flex-col');
+                listItem.classList.add('parent-task-container');
 
                 const parentHeaderDiv = document.createElement('div');
                 parentHeaderDiv.classList.add('parent-task-header', 'flex', 'items-center', 'mb-1', 'w-full');
@@ -1217,8 +1217,8 @@
                 collapseIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />';
 
                 parentHeaderDiv.appendChild(taskTextSpan);
-                parentHeaderDiv.appendChild(collapseIcon);
                 parentHeaderDiv.appendChild(controlsContainer);
+                parentHeaderDiv.appendChild(collapseIcon);
                 listItem.appendChild(parentHeaderDiv);
 
                 const subtaskList = document.createElement('ul');
@@ -1264,7 +1264,6 @@
                 });
 
             } else {
-                listItem.classList.add('flex', 'items-center', 'mb-2');
                  if (isSubtask) {
                     listItem.classList.add('ml-4');
                 }
@@ -1290,6 +1289,9 @@
 
                     if (isSubtask && task.parentId) {
                         const parentTaskDefinition = tasks.daily.find(t => t.id === task.parentId);
+                        if(!parentTaskDefinition) parentTaskDefinition = tasks.weekly.find(t => t.id === task.parentId);
+                        if(!parentTaskDefinition) parentTaskDefinition = tasks.other.find(t => t.id === task.parentId);
+
                         if (parentTaskDefinition && parentTaskDefinition.subtasks) {
                             const allSubtasksChecked = parentTaskDefinition.subtasks.every(st => checklistData.progress[st.id]);
                             checklistData.progress[parentTaskDefinition.id] = allSubtasksChecked;
@@ -1530,9 +1532,6 @@
             displayLocalResetTimes();
             if (countdownInterval) clearInterval(countdownInterval);
             countdownInterval = setInterval(displayLocalResetTimes, 1000);
-
-            // Initial run of auto-resets is now handled within displayLocalResetTimes's interval
-            // to ensure DOM is updated live when a reset occurs.
 
             populateSection(dailyList, tasks.daily, checklistData.progress);
             populateSection(weeklyList, tasks.weekly, checklistData.progress);
