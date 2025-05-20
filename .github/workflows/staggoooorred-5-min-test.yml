@@ -1,5 +1,4 @@
-# .github/workflows/staggered-5-min-test.yml
-name: Test staggoooorred 5 min schedule
+name: Test Staggered Schedule
 
 on:
   # two staggered schedules
