@@ -7,5 +7,7 @@ jobs:
   test_job:
     runs-on: ubuntu-latest
     steps:
+      - name: Check time          #  ← new (for debugging time)
+        run: date -u              #  ← new (prints current UTC)
       - name: Print Message
         run: echo "Test scheduled workflow triggered at $(date)"
